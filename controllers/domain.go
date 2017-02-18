@@ -9,7 +9,7 @@ import (
 	"github.com/astaxie/beego"
 )
 
-// Operations about Users
+// Operations about MailDomains
 type DomainController struct {
 	beego.Controller
 }

@@ -8,16 +8,23 @@ func init() {
 
 	beego.GlobalControllerRouter["mailadm/controllers:MailboxController"] = append(beego.GlobalControllerRouter["mailadm/controllers:MailboxController"],
 		beego.ControllerComments{
-			Method: "Create",
-			Router: `/`,
+			Method:           "Create",
+			Router:           `/`,
 			AllowHTTPMethods: []string{"post"},
-			Params: nil})
+			Params:           nil})
 
 	beego.GlobalControllerRouter["mailadm/controllers:MailboxController"] = append(beego.GlobalControllerRouter["mailadm/controllers:MailboxController"],
 		beego.ControllerComments{
-			Method: "GetAll",
-			Router: `/`,
+			Method:           "GetAll",
+			Router:           `/`,
 			AllowHTTPMethods: []string{"get"},
-			Params: nil})
+			Params:           nil})
+
+	beego.GlobalControllerRouter["mailadm/controllers:DomainController"] = append(beego.GlobalControllerRouter["mailadm/controllers:DomainController"],
+		beego.ControllerComments{
+			Method:           "GetAll",
+			Router:           `/`,
+			AllowHTTPMethods: []string{"get"},
+			Params:           nil})
 
 }

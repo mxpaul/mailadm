@@ -64,7 +64,7 @@ app.controller("listCtl", function ($scope, $rootScope, $location, $http) {
 				$rootScope.errorMsg = "API /v1/mailbox FAIL: " + response.statusText;
 			}
 		);
-	}
+	};
 	$scope.updateDomainList = function(){
 		$http.get("/v1/domain")
 		.then(function(response) {
@@ -78,7 +78,19 @@ app.controller("listCtl", function ($scope, $rootScope, $location, $http) {
 				$rootScope.errorMsg = "API /v1/domain FAIL: " + response.statusText;
 			}
 		);
-	}
+	};
+	$scope.CreateMailbox = function(){
+		$scope.MailBox.Domain = parseInt($scope.MailBox.Domain)
+		var body = JSON.stringify($scope.MailBox);
+		//$rootScope.errorMsg = body;
+		$http.post("/v1/mailbox",body)
+		.then(function(response) {
+					$rootScope.errorMsg = response.data;
+			}, function(response) {
+				$rootScope.errorMsg = "API /v1/mailbox POST: " + response.statusText + " " + response.data;
+			}
+		);
+	};
 	$scope.updateMailboxList();
 	$scope.updateDomainList();
 });
