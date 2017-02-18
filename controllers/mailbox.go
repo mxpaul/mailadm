@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"mailadm/models"
 	"net/http"
@@ -20,12 +21,51 @@ type MailboxController struct {
 // @Success 200 {int} models.User.Id
 // @Failure 403 body is empty
 // @router / [post]
-func (u *MailboxController) Post() {
-	var mb models.Mailbox
-	json.Unmarshal(u.Ctx.Input.RequestBody, &mb)
-	//uid := models.AddUser(user)
-	//u.Data["json"] = map[string]string{"uid": uid}
-	//u.ServeJSON()
+func (ctl *MailboxController) Create() {
+	var mailbox models.MailboxAdd
+	err := json.Unmarshal(ctl.Ctx.Input.RequestBody, &mailbox)
+	if err != nil {
+		log.Printf("arg error: %s", err)
+		http.Error(ctl.Ctx.ResponseWriter, "Bad arguments", 400)
+		return
+	}
+	err = mailbox.Validate()
+	if err != nil {
+		log.Printf("MailboxAdd: %s", err)
+		http.Error(ctl.Ctx.ResponseWriter, "Bad arguments", 400)
+		return
+	}
+	domain, err := models.GetDomainById(mailbox.Domain)
+	if err != nil {
+		log.Printf("domain %d load: %s", mailbox.Domain, err)
+		http.Error(ctl.Ctx.ResponseWriter, "Bad arguments", 400)
+		return
+	}
+	// For now we just ignore profilesent in request and use domain default profile
+	//if mailbox.Profile == 0 {
+	mailbox.Profile = domain.Defaultprofile
+	//}
+	existingBoxId, err := models.MailboxIdIfExists(mailbox)
+	if err != nil {
+		log.Printf("exist check: %s", err)
+		http.Error(ctl.Ctx.ResponseWriter, "DB Error", 500)
+		return
+	}
+	if existingBoxId > 0 {
+		log.Printf("Mailbox %s@%s exists", mailbox.Localpart, domain.Name)
+		http.Error(ctl.Ctx.ResponseWriter, "Mailbox exists", 500)
+		return
+	}
+	err = models.CreateMailbox(mailbox)
+	if err != nil {
+		log.Printf("MailboxAdd: %s", err)
+		http.Error(ctl.Ctx.ResponseWriter, "DB Error", 500)
+		return
+	}
+	msg := fmt.Sprintf("Mailbox %s@%s created", mailbox.Localpart, domain.Name)
+	log.Print(msg)
+	ctl.Data["json"] = msg
+	ctl.ServeJSON()
 }
 
 // @Title GetAll
