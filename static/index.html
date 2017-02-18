@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>adminka</title>
+  <title>mailadm</title>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
 	<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.8/angular.min.js"></script>
@@ -50,14 +50,17 @@ app.config(function($routeProvider) {
 });
 app.controller("listCtl", function ($scope, $rootScope, $location, $http) {
 	$scope.mailboxes = [ ];
-	$http.get("/v1/mailbox")
-	.then(function(response) {
-			$rootScope.errorMsg = false;
-			$scope.mailboxes = response.data;
-		}, function(response) {
-			$rootScope.errorMsg = "API /v1/mailbox FAIL";
-		}
-	);
+	$scope.updateMailboxList = function(){
+		$http.get("/v1/mailbox")
+		.then(function(response) {
+				$rootScope.errorMsg = false;
+				$scope.mailboxes = response.data;
+			}, function(response) {
+				$rootScope.errorMsg = "API /v1/mailbox FAIL: " + response.statusText;
+			}
+		);
+	}
+	$scope.updateMailboxList();
 });
 
 app.directive('bsActiveLink', ['$location', function ($location) {
@@ -82,6 +85,28 @@ return {
     }
 }
 }]);
+
+
+// Compare passwords 
+app.directive("compareTo", [ function() {
+		return {
+				require: "ngModel",
+				scope: {
+						otherModelValue: "=compareTo"
+				},
+				link: function(scope, element, attributes, ngModel) {
+						 
+						ngModel.$validators.compareTo = function(modelValue) {
+								return modelValue == scope.otherModelValue;
+						};
+ 
+						scope.$watch("otherModelValue", function() {
+								ngModel.$validate();
+						});
+				}
+		};
+	}
+]); 
 
 </script>
 
