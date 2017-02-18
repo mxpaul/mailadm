@@ -20,4 +20,10 @@ func init() {
 			AllowHTTPMethods: []string{"get"},
 			Params:           nil})
 
+	beego.GlobalControllerRouter["mailadm/controllers:DomainController"] = append(beego.GlobalControllerRouter["mailadm/controllers:DomainController"],
+		beego.ControllerComments{
+			Method:           "GetAll",
+			Router:           `/`,
+			AllowHTTPMethods: []string{"get"},
+			Params:           nil})
 }

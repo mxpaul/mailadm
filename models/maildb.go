@@ -19,9 +19,16 @@ type Mailbox struct {
 	Profile   string
 }
 
+type Maildomain struct {
+	Id             int
+	Name           string
+	Defaultprofile int
+}
+
 var (
-	PgDb            *pg.DB
-	mbox_list_query string
+	PgDb              *pg.DB
+	mbox_list_query   string
+	domain_list_query string
 )
 
 func init() {
@@ -36,7 +43,6 @@ func init() {
 		Database: beego.AppConfig.String("maildb::database"),
 	}).WithTimeout(time.Second * time.Duration(timeout))
 
-	//MailboxList = {} //make(map[int]*Mailbox)
 	mbox_list_query = `
 SELECT 
 	u.id as Id,
@@ -55,6 +61,12 @@ SELECT
 	and u.profile=p.id
  ORDER BY Id
 `
+	domain_list_query = `SELECT
+		d.id as Id,
+		d.name as Name,
+		d.default_profile as DefaultProfile 
+	FROM t_domain d
+	ORDER BY id`
 }
 
 func GetAllMailboxes() (MailboxList []Mailbox, err error) {
@@ -62,6 +74,16 @@ func GetAllMailboxes() (MailboxList []Mailbox, err error) {
 
 	if err != nil {
 		return nil, fmt.Errorf("select mailboxes: %s", err)
+	}
+
+	return
+}
+
+func GetAllDomains() (DomainList []Maildomain, err error) {
+	_, err = PgDb.Query(&DomainList, domain_list_query)
+
+	if err != nil {
+		return nil, fmt.Errorf("select domains: %s", err)
 	}
 
 	return

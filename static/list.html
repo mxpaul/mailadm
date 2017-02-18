@@ -1,32 +1,3 @@
-
-<h1>Create new</h1>
-<form name="newMbox" novalidate>
-	<p>
-		<span>Email</span>
-		<input name="email" ng-model="email" required>
-		<span ng-show='newMbox.email.$dirty && newMbox.email.$invalid'>Required</span>
-	</p>
-	<p>
-		<span>Password</span>
-		<input name="password" ng-model="password" required>
-		<span ng-show='newMbox.password.$dirty && newMbox.password.$invalid'>
-			Required
-		</span>
-	</p>
-	<p>
-		<span>Confirm password</span>
-		<input name="password_confirm" ng-model="password_confirm" compare-to="password">
-		<span ng-show='newMbox.password_confirm.$dirty && newMbox.password_confirm.$invalid'>
-			Passwords should match
-		</span>
-	</p>
-	<p>
-		<span>Full Name</span>
-		<input name="name" ng-model="name">
-	</p>
-	<button name="add">Add</button>
-</form>
-
 <h1>Mail user list</h1>
 
 <table class="table table-striped table-hover table-responsive">

@@ -20,6 +20,11 @@ func init() {
 				&controllers.MailboxController{},
 			),
 		),
+		beego.NSNamespace("/domain",
+			beego.NSInclude(
+				&controllers.DomainController{},
+			),
+		),
 	)
 	beego.AddNamespace(ns)
 }

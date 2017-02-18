@@ -8,22 +8,24 @@
 	<script src="//ajax.googleapis.com/ajax/libs/angularjs/1.4.8/angular-route.js"></script>
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
   <!--script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script> -->
-  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+	<!--<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script> -->
 	<!--link rel="stylesheet" href="http://www.w3schools.com/lib/w3.css"-->
 </head>
 <body ng-app="myApp">
 
+<!-- MENU --------------------------------------------------------- -->
 <nav class="navbar navbar-default">
   <div class="container-fluid" bs-active-link>
     <ul class="nav navbar-nav">
       <li><a href="#/">List</a></li>
-      <li><a href="#/info">Info</a></li>
+      <li><a href="#/create">Create</a></li>
     </ul>
   </div>
 </nav>
+<!-- MENU END ----------------------------------------------------- -->
 
 
-
+<!-- CONTAIER ----------------------------------------------------- -->
 <div class="container">
   <div class="row" ng-if="errorMsg">
 		<div class="alert alert-danger">
@@ -34,7 +36,9 @@
 		<div ng-view></div>
   </div>
 </div>
+<!-- CONTAINER END ------------------------------------------------ -->
 
+<!-- ANGULAR CONTROLLER ----------------------------------------- -->
 <script>
 var app = angular.module("myApp", ["ngRoute"]);
 app.config(function($routeProvider) {
@@ -43,13 +47,14 @@ app.config(function($routeProvider) {
         templateUrl : "list.html",
 				controller : "listCtl"
     })
-    .when("/info", {
-        templateUrl : "info.html",
-				controller : "infoCtl"
+    .when("/create", {
+        templateUrl : "create.html",
+				controller : "listCtl"
     })
 });
 app.controller("listCtl", function ($scope, $rootScope, $location, $http) {
 	$scope.mailboxes = [ ];
+	$scope.DefaultDomainValue = "100";
 	$scope.updateMailboxList = function(){
 		$http.get("/v1/mailbox")
 		.then(function(response) {
@@ -60,9 +65,34 @@ app.controller("listCtl", function ($scope, $rootScope, $location, $http) {
 			}
 		);
 	}
+	$scope.updateDomainList = function(){
+		$http.get("/v1/domain")
+		.then(function(response) {
+				if (Array.isArray(response.data) && response.data.length > 0 ) {
+					$rootScope.errorMsg = false;
+					$scope.maildomains = response.data;
+				} else {
+					$rootScope.errorMsg = "API /v1/domain FAIL: not array or length 0";
+				}
+			}, function(response) {
+				$rootScope.errorMsg = "API /v1/domain FAIL: " + response.statusText;
+			}
+		);
+	}
 	$scope.updateMailboxList();
+	$scope.updateDomainList();
 });
 
+</script>
+<!-- ANGULAR CONTROLLER END ----------------------------------------- -->
+
+<!-- ANGULAR EXTENTIONS --------------------------------------------- -->
+<script>
+
+// ********************************
+// * Highlight active menu item
+// *
+// ********************************
 app.directive('bsActiveLink', ['$location', function ($location) {
 return {
     restrict: 'A', //use as attribute 
@@ -87,7 +117,10 @@ return {
 }]);
 
 
-// Compare passwords 
+// ********************************
+// * Confirm passwords in form
+// *
+// ********************************
 app.directive("compareTo", [ function() {
 		return {
 				require: "ngModel",
@@ -107,8 +140,8 @@ app.directive("compareTo", [ function() {
 		};
 	}
 ]); 
-
 </script>
+<!-- ANGULAR EXTENTIONS END  ----------------------------------------- -->
 
 </body>
 </html>
