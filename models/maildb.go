@@ -28,6 +28,15 @@ type MailProfileTuple struct {
 	Description string
 	Bool_local  string
 }
+type MailboxFullInfo struct {
+	Id          int
+	Email       string
+	Name        string
+	Disabled    bool
+	Profile     int
+	Profilename string
+	Password    string
+}
 
 type Mailbox struct {
 	Id          int
@@ -237,6 +246,32 @@ func GetMailUserTupleById(id uint64) (tuple MailUserTuple, err error) {
 		return tuple, fmt.Errorf("maildb: not exists id=%d", id)
 	}
 	return tuple, err
+}
+
+func GetMailboxFullInfoById(id uint64) (tuple MailboxFullInfo, count int, err error) {
+	query := `SELECT
+		u.id as Id,
+		u.login || '@' || d.name as Email,
+		u.fullname as Name,
+		u.bool_disabled as Disabled,
+		u.profile as profile,
+		p.name as ProfileName,
+		u.password as Password
+	FROM t_user u, t_domain d, t_profile p WHERE u.id=$1::int
+	`
+
+	// TODO: move statment preparation into init
+	stmnt, err := PgDb.Prepare(query)
+	if err != nil {
+		return tuple, 0, fmt.Errorf("prepare: %s", err)
+	}
+
+	res, err := stmnt.Query(&tuple, id)
+
+	if err != nil {
+		return tuple, 0, fmt.Errorf("maildb: %s", err)
+	}
+	return tuple, res.RowsReturned(), err
 }
 
 func UpdateMailboxTuple(box MailUserTuple) (err error) {

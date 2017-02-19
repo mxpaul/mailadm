@@ -199,8 +199,8 @@ func InterfaceToInt(arg interface{}) (num int) {
 }
 
 // @Title GetAll
-// @Description get all Users
-// @Success 200 {object} models.User
+// @Description get all Mail Users
+// @Success 200 {object} models.Mailbox
 // @router / [get]
 func (mb *MailboxController) GetAll() {
 	mbxs, err := models.GetAllMailboxes()
@@ -211,4 +211,32 @@ func (mb *MailboxController) GetAll() {
 	}
 	mb.Data["json"] = mbxs
 	mb.ServeJSON()
+}
+
+// @Title GetOne
+// @Description Get mailbox data
+// @Success 200 {object} models.maildb
+// @router /:id [get]
+func (ctl *MailboxController) GetOne() {
+	log_prefix := "[MBOX/EDIT]"
+	IdString := ctl.GetString(":id")
+	Id, err := strconv.ParseUint(IdString, 10, 32)
+	if err != nil {
+		log.Printf("%s id is not int", log_prefix)
+		http.Error(ctl.Ctx.ResponseWriter, "Bad arguments", 400)
+		return
+	}
+	mailbox, count, err := models.GetMailboxFullInfoById(Id)
+	if err != nil {
+		log.Printf("%s mailbox select: %s", log_prefix, err)
+		http.Error(ctl.Ctx.ResponseWriter, "DB error", 500)
+		return
+	}
+	if count == 0 {
+		log.Printf("%s mailbox not found id=%d", log_prefix, Id)
+		http.Error(ctl.Ctx.ResponseWriter, "Bad arguments", 400)
+		return
+	}
+	ctl.Data["json"] = mailbox
+	ctl.ServeJSON()
 }
