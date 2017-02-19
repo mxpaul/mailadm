@@ -6,6 +6,7 @@ import (
 	"log"
 	"mailadm/models"
 	"net/http"
+	"strconv"
 
 	"github.com/astaxie/beego"
 )
@@ -73,17 +74,128 @@ func (ctl *MailboxController) Create() {
 // @Success 200 {object} models.maildb
 // @router /:id [put]
 func (ctl *MailboxController) Edit() {
-	Id := ctl.GetString(":id")
-	log.Printf("PUT REQUEST FOR ID %d", Id)
-	var mailbox models.MailboxEdit
-	err := json.Unmarshal(ctl.Ctx.Input.RequestBody, &mailbox)
+	log_prefix := "[MBOX/EDIT]"
+	IdString := ctl.GetString(":id")
+	Id, err := strconv.ParseUint(IdString, 10, 32)
 	if err != nil {
-		log.Printf("Mailbox EDIT arg error: %s", err)
+		log.Printf("%s id is not int", log_prefix)
 		http.Error(ctl.Ctx.ResponseWriter, "Bad arguments", 400)
 		return
 	}
-	ctl.Data["json"] = mailbox
+	mailbox, err := models.GetMailUserTupleById(Id)
+	if err != nil {
+		log.Printf("%s mailbox not found: %s", log_prefix, err)
+		http.Error(ctl.Ctx.ResponseWriter, "Bad arguments", 400)
+		return
+	}
+	updatedMailbox, err := ParseMailboxArgsAndUpdateTuple(ctl.Ctx.Input.RequestBody, mailbox)
+	if err != nil {
+		log.Printf("%s parse args: %s", log_prefix, err)
+		http.Error(ctl.Ctx.ResponseWriter, "Bad arguments", 400)
+		return
+	}
+	if mailbox.Profile != updatedMailbox.Profile {
+		_, count, err := models.GetMailProfileTupleById(updatedMailbox.Profile)
+		if err != nil {
+			log.Printf("%s : %s", log_prefix, err)
+			http.Error(ctl.Ctx.ResponseWriter, "Some error", 500)
+			return
+		}
+		if count == 0 {
+			log.Printf("%s profile not found: %d", log_prefix, updatedMailbox.Profile)
+			http.Error(ctl.Ctx.ResponseWriter, "Bad arguments", 400)
+			return
+		}
+	}
+	err = models.UpdateMailboxTuple(updatedMailbox)
+	if err != nil {
+		log.Printf("%s update failed: %s", log_prefix, err)
+		http.Error(ctl.Ctx.ResponseWriter, "Some DB error", 500)
+		return
+	}
+	msg := fmt.Sprintf("Success for maildbox id %d (localpart: %s)", Id, updatedMailbox.Login)
+	ctl.Data["json"] = msg
 	ctl.ServeJSON()
+}
+
+func ParseMailboxArgsAndUpdateTuple(jsonString []byte, srcTuple models.MailUserTuple) (tuple models.MailUserTuple, err error) {
+	var container interface{}
+	err = json.Unmarshal(jsonString, &container)
+	if err != nil {
+		return tuple, fmt.Errorf("JSON unmarshal: %s", err)
+	}
+	tuple = srcTuple
+	ArgsMap := container.(map[string]interface{})
+	for arg_name, arg := range ArgsMap {
+		switch arg := arg.(type) {
+		case int, int32, int8, int16, uint, uint8, uint16, uint32, uint64, float32, float64:
+			if arg_name == "Profile" {
+				num := InterfaceToInt(arg)
+				if num <= 0 || num > 10000 {
+					return tuple, fmt.Errorf("invalid profile id: %d", arg)
+				}
+				tuple.Profile = num
+			} else {
+				return tuple, fmt.Errorf("Unknown integer parameter: %d", arg)
+			}
+		case string:
+			if arg_name == "Password" {
+				if len(arg) == 0 {
+					return tuple, fmt.Errorf("password length zero")
+				}
+				if len(arg) > 128 {
+					return tuple, fmt.Errorf("password length > 128")
+				}
+				tuple.Password = arg
+			} else if arg_name == "Name" {
+				if len(arg) > 128 {
+					return tuple, fmt.Errorf("name length > 128")
+				}
+				tuple.Fullname = arg
+			} else {
+				return tuple, fmt.Errorf("Unknown string parameter: %q", arg_name)
+			}
+		case bool:
+			if arg_name == "Disabled" {
+				tuple.Bool_disabled = arg
+			} else {
+				return tuple, fmt.Errorf("Unknown bool parameter: %q", arg_name)
+			}
+		default:
+			log.Printf("parameter %q of unsupported type", arg_name)
+		}
+	}
+	return
+}
+
+func InterfaceToInt(arg interface{}) (num int) {
+	switch arg := arg.(type) {
+	case int:
+		num = int(arg)
+	case int8:
+		num = int(arg)
+	case int16:
+		num = int(arg)
+	case int32:
+		num = int(arg)
+	case int64:
+		num = int(arg)
+	case uint:
+		num = int(arg)
+	case uint8:
+		num = int(arg)
+	case uint16:
+		num = int(arg)
+	case uint32:
+		num = int(arg)
+	case uint64:
+		num = int(arg)
+	case float32:
+		num = int(arg)
+	case float64:
+		num = int(arg)
+	}
+	return
 }
 
 // @Title GetAll

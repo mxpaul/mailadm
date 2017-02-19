@@ -10,14 +10,34 @@ import (
 	"gopkg.in/pg.v5"
 )
 
+//id  | login | password | fullname | bool_disabled | bool_backup | domain | profile
+type MailUserTuple struct {
+	Id            int
+	Login         string
+	Password      string
+	Fullname      string
+	Bool_disabled bool
+	Bool_backup   bool
+	Domain        int
+	Profile       int
+}
+
+type MailProfileTuple struct {
+	Id          int
+	Name        string
+	Description string
+	Bool_local  string
+}
+
 type Mailbox struct {
-	Id        int
-	Localpart string
-	Domain    string
-	Email     string
-	Name      string
-	Disabled  string
-	Profile   string
+	Id          int
+	Localpart   string
+	Domain      string
+	Email       string
+	Name        string
+	Disabled    bool
+	Profile     int
+	Profilename string
 }
 
 type Maildomain struct {
@@ -104,7 +124,8 @@ SELECT
 	u.login || '@' || d.name as Email,
 	u.fullname as Name,
 	u.bool_disabled as Disabled,
-	p.name as profile
+	u.profile as profile,
+	p.name as ProfileName
  FROM 
 	t_user u,
 	t_domain d,
@@ -196,4 +217,61 @@ func CreateMailbox(box MailboxAdd) (err error) {
 	}
 
 	return
+}
+
+func GetMailUserTupleById(id uint64) (tuple MailUserTuple, err error) {
+	query := `SELECT * FROM t_user u WHERE id=$1::int`
+
+	// TODO: move statment preparation into init
+	stmnt, err := PgDb.Prepare(query)
+	if err != nil {
+		return tuple, fmt.Errorf("prepare: %s", err)
+	}
+
+	res, err := stmnt.Query(&tuple, id)
+
+	if err != nil {
+		return tuple, fmt.Errorf("maildb: %s", err)
+	}
+	if res.RowsReturned() == 0 {
+		return tuple, fmt.Errorf("maildb: not exists id=%d", id)
+	}
+	return tuple, err
+}
+
+func UpdateMailboxTuple(box MailUserTuple) (err error) {
+	query := `UPDATE t_user 
+	SET
+		password = $2::text,
+		fullname = $3::text,
+		bool_disabled = $4::bool,
+		profile = $5::int
+	WHERE id=$1::int
+	`
+	stmnt, err := PgDb.Prepare(query)
+	if err != nil {
+		return fmt.Errorf("maildb prepare update t_user: %s", err)
+	}
+
+	_, err = stmnt.Exec(box.Id, box.Password, box.Fullname, box.Bool_disabled, box.Profile)
+
+	if err != nil {
+		return fmt.Errorf("maildb: %s %v", err, stmnt)
+	}
+
+	return
+}
+
+func GetMailProfileTupleById(id int) (tuple MailProfileTuple, count int, err error) {
+	query := `SELECT * FROM t_profile WHERE id=$1::int`
+	// TODO: move statment preparation into init
+	stmnt, err := PgDb.Prepare(query)
+	if err != nil {
+		return tuple, 0, fmt.Errorf("prepare: %s", err)
+	}
+	res, err := stmnt.Query(&tuple, id)
+	if err != nil {
+		return tuple, 0, fmt.Errorf("maildb: %s", err)
+	}
+	return tuple, res.RowsReturned(), err
 }
