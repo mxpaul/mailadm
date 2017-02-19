@@ -101,7 +101,40 @@ app.controller("listCtl", function ($scope, $rootScope, $location, $http) {
 
 
 app.controller("editCtl", function ($scope, $rootScope, $http, $routeParams) {
-		$scope.value = $routeParams.MailboxId ;
+	$scope.resetEditedMailbox = function(){
+		$scope.editMailbox = {
+			"Password": $scope.originalMailbox.Password,
+			"Name": $scope.originalMailbox.Name,
+			"Disabled": $scope.originalMailbox.Disabled,
+		}
+	}
+	$scope.loadMailboxInfo = function(){
+		var url = "/v1/mailbox/"+$routeParams.MailboxId;
+		$http.get(url)
+		.then(function(response) {
+					$rootScope.errorMsg = false;
+					$scope.originalMailbox = response.data;
+					$scope.resetEditedMailbox();
+			}, function(response) {
+				$rootScope.errorMsg = "API "+url+" FAIL: " + response.statusText;
+			}
+		);
+	};
+	$scope.updateMailbox = function(){
+		//$scope.editMailbox.Profile = parseInt($scope.editMailbox.Profile)
+		var body = JSON.stringify($scope.editMailbox);
+		//$rootScope.errorMsg = body;
+		var url = "/v1/mailbox/"+$routeParams.MailboxId;
+		$http.put(url,body)
+		.then(function(response) {
+					//$rootScope.errorMsg = response.data;
+					$scope.loadMailboxInfo();
+			}, function(response) {
+				$rootScope.errorMsg = "API "+url+" POST: " + response.statusText + " " + response.data;
+			}
+		);
+	};
+	$scope.loadMailboxInfo();
 });
 
 </script>

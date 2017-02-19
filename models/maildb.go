@@ -196,6 +196,7 @@ func MailboxIdIfExists(box MailboxAdd) (int, error) {
 	if err != nil {
 		return 0, fmt.Errorf("prepare: %s", err)
 	}
+	defer stmnt.Close()
 
 	var otherbox Mailbox
 	res, err := stmnt.Query(&otherbox, box.Localpart, box.Domain)
@@ -218,6 +219,7 @@ func CreateMailbox(box MailboxAdd) (err error) {
 	if err != nil {
 		return fmt.Errorf("maildb insert: %s", err)
 	}
+	defer stmnt.Close()
 
 	_, err = stmnt.Exec(box.Localpart, box.Domain, box.Password, box.Profile, box.Name)
 
@@ -236,12 +238,14 @@ func GetMailUserTupleById(id uint64) (tuple MailUserTuple, err error) {
 	if err != nil {
 		return tuple, fmt.Errorf("prepare: %s", err)
 	}
+	defer stmnt.Close()
 
 	res, err := stmnt.Query(&tuple, id)
 
 	if err != nil {
 		return tuple, fmt.Errorf("maildb: %s", err)
 	}
+
 	if res.RowsReturned() == 0 {
 		return tuple, fmt.Errorf("maildb: not exists id=%d", id)
 	}
@@ -257,7 +261,10 @@ func GetMailboxFullInfoById(id uint64) (tuple MailboxFullInfo, count int, err er
 		u.profile as profile,
 		p.name as ProfileName,
 		u.password as Password
-	FROM t_user u, t_domain d, t_profile p WHERE u.id=$1::int
+	FROM t_user u, t_domain d, t_profile p
+	WHERE 
+		u.domain = d.id
+		and u.id=$1::int
 	`
 
 	// TODO: move statment preparation into init
@@ -265,6 +272,7 @@ func GetMailboxFullInfoById(id uint64) (tuple MailboxFullInfo, count int, err er
 	if err != nil {
 		return tuple, 0, fmt.Errorf("prepare: %s", err)
 	}
+	defer stmnt.Close()
 
 	res, err := stmnt.Query(&tuple, id)
 
@@ -287,6 +295,7 @@ func UpdateMailboxTuple(box MailUserTuple) (err error) {
 	if err != nil {
 		return fmt.Errorf("maildb prepare update t_user: %s", err)
 	}
+	defer stmnt.Close()
 
 	_, err = stmnt.Exec(box.Id, box.Password, box.Fullname, box.Bool_disabled, box.Profile)
 
@@ -304,6 +313,8 @@ func GetMailProfileTupleById(id int) (tuple MailProfileTuple, count int, err err
 	if err != nil {
 		return tuple, 0, fmt.Errorf("prepare: %s", err)
 	}
+	defer stmnt.Close()
+
 	res, err := stmnt.Query(&tuple, id)
 	if err != nil {
 		return tuple, 0, fmt.Errorf("maildb: %s", err)
