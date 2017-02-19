@@ -34,6 +34,13 @@ type MailboxAdd struct {
 	Profile   int `json:",omitempty"`
 }
 
+type MailboxEdit struct {
+	Name     string
+	Password string
+	Enabled  bool `json:",omitempty"`
+	Profile  int  `json:",omitempty"`
+}
+
 var (
 	PgDb              *pg.DB
 	mbox_list_query   string

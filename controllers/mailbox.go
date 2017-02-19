@@ -68,6 +68,24 @@ func (ctl *MailboxController) Create() {
 	ctl.ServeJSON()
 }
 
+// @Title Edit
+// @Description Put mailbox edited data
+// @Success 200 {object} models.maildb
+// @router /:id [put]
+func (ctl *MailboxController) Edit() {
+	Id := ctl.GetString(":id")
+	log.Printf("PUT REQUEST FOR ID %d", Id)
+	var mailbox models.MailboxEdit
+	err := json.Unmarshal(ctl.Ctx.Input.RequestBody, &mailbox)
+	if err != nil {
+		log.Printf("Mailbox EDIT arg error: %s", err)
+		http.Error(ctl.Ctx.ResponseWriter, "Bad arguments", 400)
+		return
+	}
+	ctl.Data["json"] = mailbox
+	ctl.ServeJSON()
+}
+
 // @Title GetAll
 // @Description get all Users
 // @Success 200 {object} models.User

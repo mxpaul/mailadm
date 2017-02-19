@@ -14,6 +14,10 @@ type DomainController struct {
 	beego.Controller
 }
 
+// @Title GetAll
+// @Description get all MailDomains
+// @Success 200 {object} models.Maildomain
+// @router / [get]
 func (ctl *DomainController) GetAll() {
 	domains, err := models.GetAllDomains()
 	if err != nil {
