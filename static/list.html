@@ -7,9 +7,11 @@
 		<!-- <th>Backup</th> -->
 		<!-- <th>Active</th> -->
 		<th>Name</th>
+		<th>Disabled</th>
 	</tr>
-	<tr ng-repeat="box in mailboxes"> 
-		<td> {{ box.Email }} </td>
-		<td> {{ box.Name }}</td>
+	<tr ng-repeat="box in mailboxes">
+		<td> <a href="#/edit/{{box.Id}}">{{ box.Email }}</a> </td>
+			<td> {{ box.Name }}</td>
+			<td> <input type="checkbox" ng-model="box.Disabled" ng-disabled="true"></td>
 	</tr>
 </table>

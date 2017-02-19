@@ -51,6 +51,10 @@ app.config(function($routeProvider) {
         templateUrl : "create.html",
 				controller : "listCtl"
     })
+    .when("/edit/:MailboxId", {
+        templateUrl : "edit.html",
+				controller : "editCtl"
+    })
 });
 app.controller("listCtl", function ($scope, $rootScope, $location, $http) {
 	$scope.mailboxes = [ ];
@@ -93,6 +97,11 @@ app.controller("listCtl", function ($scope, $rootScope, $location, $http) {
 	};
 	$scope.updateMailboxList();
 	$scope.updateDomainList();
+});
+
+
+app.controller("editCtl", function ($scope, $rootScope, $http, $routeParams) {
+		$scope.value = $routeParams.MailboxId ;
 });
 
 </script>
