@@ -231,7 +231,11 @@ func CreateMailbox(box MailboxAdd) (err error) {
 }
 
 func GetMailUserTupleById(id uint64) (tuple MailUserTuple, err error) {
-	query := `SELECT * FROM t_user u WHERE id=$1::int`
+	//id  | login | password | fullname | bool_disabled | bool_backup | domain | profile
+	query := `SELECT 
+		id, login, password, fullname, bool_disabled, bool_backup, domain, profile
+	FROM t_user u WHERE id=$1::int
+	`
 
 	// TODO: move statment preparation into init
 	stmnt, err := PgDb.Prepare(query)
