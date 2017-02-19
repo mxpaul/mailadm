@@ -15,6 +15,13 @@ func init() {
 
 	beego.GlobalControllerRouter["mailadm/controllers:MailboxController"] = append(beego.GlobalControllerRouter["mailadm/controllers:MailboxController"],
 		beego.ControllerComments{
+			Method:           "Edit",
+			Router:           `/:id`,
+			AllowHTTPMethods: []string{"put"},
+			Params:           nil})
+
+	beego.GlobalControllerRouter["mailadm/controllers:MailboxController"] = append(beego.GlobalControllerRouter["mailadm/controllers:MailboxController"],
+		beego.ControllerComments{
 			Method:           "GetAll",
 			Router:           `/`,
 			AllowHTTPMethods: []string{"get"},
