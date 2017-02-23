@@ -25,15 +25,15 @@
 		<input name="name" ng-model="MailBox.Name" class="form-control">
 	</div>
 	<div class="form-group">
-	<button name="add" ng-disabled="newMbox.$invalid" ng-click="CreateMailbox()" class="btn btn-default">
+	<button name="add" ng-hide="newMbox.$invalid" ng-click="CreateMailbox()" class="btn btn-success">
 		Create mailbox
 	</button>
 	</div>
 </form>
 
-		<div class='alert alert-danger' ng-show='newMbox.localpart.$dirty && newMbox.localpart.$invalid'>Localpart required</div>
-		<div class='alert alert-danger' ng-show='newMbox.password.$dirty && newMbox.password.$invalid'>Password Required </div>
-		<div class='alert alert-danger' ng-show='newMbox.password_confirm.$invalid'>
+		<div class='alert alert-warning' ng-show='newMbox.localpart.$dirty && newMbox.localpart.$invalid'>Localpart required</div>
+		<div class='alert alert-warning' ng-show='newMbox.password.$dirty && newMbox.password.$invalid'>Password Required </div>
+		<div class='alert alert-warning' ng-show='newMbox.password_confirm.$invalid'>
 			Passwords should match
 		</div>
 

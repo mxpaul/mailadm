@@ -1,71 +1,84 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>mailadm</title>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-	<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.8/angular.min.js"></script>
-	<script src="//ajax.googleapis.com/ajax/libs/angularjs/1.4.8/angular-route.js"></script>
-  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
-  <!--script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script> -->
-	<!--<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script> -->
-	<!--link rel="stylesheet" href="http://www.w3schools.com/lib/w3.css"-->
+	<title>mailadm</title>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+
+	<script src="//ajax.googleapis.com/ajax/libs/angularjs/1.4.8/angular.min.js"></script>
+	<script src="//ajax.googleapis.com/ajax/libs/angularjs/1.4.8/angular-route.min.js"></script>
+
+	<script src="//ajax.googleapis.com/ajax/libs/angularjs/1.4.8/angular-animate.min.js"></script>
+	<script src="//ajax.googleapis.com/ajax/libs/angularjs/1.4.8/angular-sanitize.min.js"></script>
+
+	<script src="//angular-ui.github.io/bootstrap/ui-bootstrap-tpls-2.5.0.js"></script>
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
 </head>
 <body ng-app="myApp">
 
 <!-- MENU --------------------------------------------------------- -->
 <nav class="navbar navbar-default">
-  <div class="container-fluid" bs-active-link>
-    <ul class="nav navbar-nav">
-      <li><a href="#/">List</a></li>
-      <li><a href="#/create">Create</a></li>
-    </ul>
-  </div>
+	<div class="container-fluid" bs-active-link>
+		<ul class="nav navbar-nav">
+			<li><a href="#/">List</a></li>
+			<li><a href="#/create">Create</a></li>
+		</ul>
+	</div>
 </nav>
 <!-- MENU END ----------------------------------------------------- -->
 
 
 <!-- CONTAIER ----------------------------------------------------- -->
 <div class="container">
-  <div class="row" ng-if="errorMsg">
-		<div class="alert alert-danger">
-			<strong>Error:</strong> <span ng-bind="errorMsg"></span>
+	<div class="row">
+		<div uib-alert ng-repeat="alert in alerts" ng-class="'alert-' + (alert.type || 'warning')" close="closeAlert($index)">
+			{{alert.msg}}
 		</div>
 	</div>
-  <div class="row">
+	<div class="row">
 		<div ng-view></div>
-  </div>
+	</div>
 </div>
 <!-- CONTAINER END ------------------------------------------------ -->
 
 <!-- ANGULAR CONTROLLER ----------------------------------------- -->
 <script>
-var app = angular.module("myApp", ["ngRoute"]);
+var app = angular.module("myApp", ["ngRoute","ngAnimate", "ngSanitize", "ui.bootstrap"]);
+//var app = angular.module("myApp", ["ngRoute"]);
 app.config(function($routeProvider) {
-    $routeProvider
-    .when("/", {
-        templateUrl : "list.html",
+		$routeProvider
+		.when("/", {
+				templateUrl : "list.html",
 				controller : "listCtl"
-    })
-    .when("/create", {
-        templateUrl : "create.html",
+		})
+		.when("/create", {
+				templateUrl : "create.html",
 				controller : "listCtl"
-    })
-    .when("/edit/:MailboxId", {
-        templateUrl : "edit.html",
+		})
+		.when("/edit/:MailboxId", {
+				templateUrl : "edit.html",
 				controller : "editCtl"
-    })
+		});
 });
 app.controller("listCtl", function ($scope, $rootScope, $location, $http) {
 	$scope.mailboxes = [ ];
+	$rootScope.alerts = [];
+	$rootScope.closeAlert = function(index) {
+		$rootScope.alerts.splice(index, 1);
+	};
+	$rootScope.alertError = function(msg) {
+		$rootScope.alerts.push({msg: msg, type: "danger"});
+	};
+	$rootScope.alertOK = function(msg) {
+		$rootScope.alerts.push({msg: msg, type: "success"});
+	};
 	$scope.DefaultDomainValue = "100";
 	$scope.updateMailboxList = function(){
 		$http.get("/v1/mailbox")
 		.then(function(response) {
-				$rootScope.errorMsg = false;
 				$scope.mailboxes = response.data;
 			}, function(response) {
-				$rootScope.errorMsg = "API /v1/mailbox FAIL: " + response.statusText;
+				$rootScope.alertError("API /v1/mailbox FAIL: " + response.statusText);
 			}
 		);
 	};
@@ -73,25 +86,24 @@ app.controller("listCtl", function ($scope, $rootScope, $location, $http) {
 		$http.get("/v1/domain")
 		.then(function(response) {
 				if (Array.isArray(response.data) && response.data.length > 0 ) {
-					$rootScope.errorMsg = false;
 					$scope.maildomains = response.data;
 				} else {
-					$rootScope.errorMsg = "API /v1/domain FAIL: not array or length 0";
+					$rootScope.alertError("API /v1/domain FAIL: not array or length 0" );
 				}
 			}, function(response) {
-				$rootScope.errorMsg = "API /v1/domain FAIL: " + response.statusText;
+				$rootScope.alertError("API /v1/domain FAIL: " + response.statusText);
 			}
 		);
 	};
 	$scope.CreateMailbox = function(){
-		$scope.MailBox.Domain = parseInt($scope.MailBox.Domain)
-		var body = JSON.stringify($scope.MailBox);
-		//$rootScope.errorMsg = body;
+		var MailBox = angular.copy($scope.MailBox);
+		MailBox.Domain = parseInt($scope.MailBox.Domain)
+		var body = JSON.stringify(MailBox);
 		$http.post("/v1/mailbox",body)
 		.then(function(response) {
-					$rootScope.errorMsg = response.data;
+				$rootScope.alertOK(response.data);
 			}, function(response) {
-				$rootScope.errorMsg = "API /v1/mailbox POST: " + response.statusText + " " + response.data;
+				$rootScope.alertError("API /v1/mailbox POST: " + response.statusText + " " + response.data);
 			}
 		);
 	};
@@ -101,6 +113,16 @@ app.controller("listCtl", function ($scope, $rootScope, $location, $http) {
 
 
 app.controller("editCtl", function ($scope, $rootScope, $http, $routeParams, $location) {
+	$rootScope.alerts = [];
+	$rootScope.closeAlert = function(index) {
+		$rootScope.alerts.splice(index, 1);
+	};
+	$rootScope.alertError = function(msg) {
+		$rootScope.alerts.push({msg: msg, type: "danger"});
+	};
+	$rootScope.alertOK = function(msg) {
+		$rootScope.alerts.push({msg: msg, type: "success"});
+	};
 	$scope.resetEditedMailbox = function(){
 		$scope.editMailbox = {
 			"Password": $scope.originalMailbox.Password,
@@ -112,25 +134,23 @@ app.controller("editCtl", function ($scope, $rootScope, $http, $routeParams, $lo
 		var url = "/v1/mailbox/"+$routeParams.MailboxId;
 		$http.get(url)
 		.then(function(response) {
-					$rootScope.errorMsg = false;
 					$scope.originalMailbox = response.data;
 					$scope.resetEditedMailbox();
 			}, function(response) {
-				$rootScope.errorMsg = "API "+url+" FAIL: " + response.statusText;
+				$rootScope.alertError("API "+url+" FAIL: " + response.statusText);
 			}
 		);
 	};
 	$scope.updateMailbox = function(){
 		//$scope.editMailbox.Profile = parseInt($scope.editMailbox.Profile)
 		var body = JSON.stringify($scope.editMailbox);
-		//$rootScope.errorMsg = body;
 		var url = "/v1/mailbox/"+$routeParams.MailboxId;
 		$http.put(url,body)
 		.then(function(response) {
-					//$rootScope.errorMsg = response.data;
-					$scope.loadMailboxInfo();
+				$rootScope.alertOK("Update success");
+				$scope.loadMailboxInfo();
 			}, function(response) {
-				$rootScope.errorMsg = "API "+url+" POST: " + response.statusText + " " + response.data;
+				$rootScope.alertError("API "+url+" POST: " + response.statusText + " " + response.data);
 			}
 		);
 	};
@@ -141,7 +161,7 @@ app.controller("editCtl", function ($scope, $rootScope, $http, $routeParams, $lo
 		.then(function(response) {
 				$location.url("/");
 			}, function(response) {
-				$rootScope.errorMsg = "API "+url+" DELETE: " + response.statusText;
+				$rootScope.alertError("API "+url+" DELETE: " + response.statusText);
 			}
 		);
 	};
@@ -160,24 +180,24 @@ app.controller("editCtl", function ($scope, $rootScope, $http, $routeParams, $lo
 // ********************************
 app.directive('bsActiveLink', ['$location', function ($location) {
 return {
-    restrict: 'A', //use as attribute 
-    replace: false,
-    link: function (scope, elem) {
-        //after the route has changed
-        scope.$on("$routeChangeSuccess", function () {
-            var hrefs = ['/#' + $location.path(),
-                         '#' + $location.path(), //html5: false
-                         $location.path()]; //html5: true
-            angular.forEach(elem.find('a'), function (a) {
-                a = angular.element(a);
-                if (-1 !== hrefs.indexOf(a.attr('href'))) {
-                    a.parent().addClass('active');
-                } else {
-                    a.parent().removeClass('active');   
-                };
-            });     
-        });
-    }
+	restrict: 'A', //use as attribute 
+	replace: false,
+	link: function (scope, elem) {
+		//after the route has changed
+		scope.$on("$routeChangeSuccess", function () {
+			var hrefs = ['/#' + $location.path(),
+				 '#' + $location.path(), //html5: false
+				 $location.path()]; //html5: true
+			angular.forEach(elem.find('a'), function (a) {
+				a = angular.element(a);
+				if (-1 !== hrefs.indexOf(a.attr('href'))) {
+					a.parent().addClass('active');
+				} else {
+					a.parent().removeClass('active');   
+				};
+			});     
+		});
+	}
 }
 }]);
 
@@ -187,24 +207,23 @@ return {
 // *
 // ********************************
 app.directive("compareTo", [ function() {
-		return {
-				require: "ngModel",
-				scope: {
-						otherModelValue: "=compareTo"
-				},
-				link: function(scope, element, attributes, ngModel) {
-						 
-						ngModel.$validators.compareTo = function(modelValue) {
-								return modelValue == scope.otherModelValue;
-						};
- 
-						scope.$watch("otherModelValue", function() {
-								ngModel.$validate();
-						});
-				}
-		};
-	}
-]); 
+	return {
+		require: "ngModel",
+		scope: {
+			otherModelValue: "=compareTo"
+		},
+		link: function(scope, element, attributes, ngModel) {
+
+			ngModel.$validators.compareTo = function(modelValue) {
+				return modelValue == scope.otherModelValue;
+			};
+
+			scope.$watch("otherModelValue", function() {
+				ngModel.$validate();
+			});
+		}
+	};
+}]);
 </script>
 <!-- ANGULAR EXTENTIONS END  ----------------------------------------- -->
 

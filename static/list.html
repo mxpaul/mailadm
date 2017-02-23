@@ -19,7 +19,7 @@
 		<th>Disabled</th>
 	</tr>
 	<tr ng-repeat="box in mailboxes | filter : { 'Email': filterEmail, 'Name': filterName}">
-		<td> <a href="#/edit/{{box.Id}}">{{ box.Email }}</a> </td>
+		<td> <a ng-href="#/edit/{{box.Id}}">{{ box.Email }}</a> </td>
 			<td> {{ box.Name }}</td>
 			<td> <input type="checkbox" ng-model="box.Disabled" ng-disabled="true"></td>
 	</tr>

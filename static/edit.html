@@ -14,13 +14,13 @@
 		<label class="control-label" for="name">Disabled?</label>
 		<input name="disabled" type="checkbox" ng-model="editMailbox.Disabled">
 	</div>
-	<button name="save" ng-disabled="editMbox.$invalid" ng-click="updateMailbox()" class="btn btn-default">
+	<button name="save" ng-disabled="editMbox.$invalid" ng-click="updateMailbox()" class="btn btn-default btn-success">
 		Save mailbox
 	</button>
-	<button name="reset" ng-click="resetEditedMailbox()" class="btn btn-default">
+	<button name="reset" ng-click="resetEditedMailbox()" class="btn btn-reset">
 		Reset changes
 	</button>
-	<button name="drop" ng-click="dropMailbox()" class="btn btn-default">
+	<button name="drop" ng-click="dropMailbox()" class="btn btn-danger">
 		Delete mailbox
 	</button>
 </form>
