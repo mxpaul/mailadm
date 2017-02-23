@@ -310,6 +310,26 @@ func UpdateMailboxTuple(box MailUserTuple) (err error) {
 	return
 }
 
+func DropMailboxById(id uint64) (count int, err error) {
+	query := `DELETE from t_user WHERE id = $1::int`
+
+	// TODO: move statment preparation into init
+	stmnt, err := PgDb.Prepare(query)
+	if err != nil {
+		err = fmt.Errorf("prepare: %s", err)
+		return
+	}
+	defer stmnt.Close()
+
+	res, err := stmnt.Query(nil, id)
+
+	if err != nil {
+		err = fmt.Errorf("maildb: %s", err)
+		return
+	}
+	return res.RowsAffected(), err
+}
+
 func GetMailProfileTupleById(id int) (tuple MailProfileTuple, count int, err error) {
 	query := `SELECT * FROM t_profile WHERE id=$1::int`
 	// TODO: move statment preparation into init

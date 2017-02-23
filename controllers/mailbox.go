@@ -240,3 +240,37 @@ func (ctl *MailboxController) GetOne() {
 	ctl.Data["json"] = mailbox
 	ctl.ServeJSON()
 }
+
+// @Title Delete
+// @Description Drop mailbox
+// @Success 200 {object} models.maildb
+// @router /:id [delete]
+func (ctl *MailboxController) Delete() {
+	log_prefix := "[MBOX/DEL]"
+	IdString := ctl.GetString(":id")
+	Id, err := strconv.ParseUint(IdString, 10, 32)
+	if err != nil {
+		log.Printf("%s id is not int", log_prefix)
+		http.Error(ctl.Ctx.ResponseWriter, "Bad arguments", 400)
+		return
+	}
+	_, count, err := models.GetMailboxFullInfoById(Id)
+	if err != nil {
+		log.Printf("%s mailbox select: %s", log_prefix, err)
+		http.Error(ctl.Ctx.ResponseWriter, "DB error", 500)
+		return
+	}
+	if count == 0 {
+		log.Printf("%s mailbox not found id=%d", log_prefix, Id)
+		http.Error(ctl.Ctx.ResponseWriter, "Bad arguments", 400)
+		return
+	}
+	count, err = models.DropMailboxById(Id)
+	if err != nil {
+		log.Printf("%s mailbox select: %s", log_prefix, err)
+		http.Error(ctl.Ctx.ResponseWriter, "DB error", 500)
+		return
+	}
+	ctl.Data["json"] = count
+	ctl.ServeJSON()
+}

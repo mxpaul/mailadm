@@ -41,4 +41,11 @@ func init() {
 			AllowHTTPMethods: []string{"get"},
 			Params: nil})
 
+	beego.GlobalControllerRouter["mailadm/controllers:MailboxController"] = append(beego.GlobalControllerRouter["mailadm/controllers:MailboxController"],
+		beego.ControllerComments{
+			Method: "Delete",
+			Router: `/:id`,
+			AllowHTTPMethods: []string{"delete"},
+			Params: nil})
+
 }
