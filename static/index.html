@@ -100,7 +100,7 @@ app.controller("listCtl", function ($scope, $rootScope, $location, $http) {
 });
 
 
-app.controller("editCtl", function ($scope, $rootScope, $http, $routeParams) {
+app.controller("editCtl", function ($scope, $rootScope, $http, $routeParams, $location) {
 	$scope.resetEditedMailbox = function(){
 		$scope.editMailbox = {
 			"Password": $scope.originalMailbox.Password,
@@ -131,6 +131,17 @@ app.controller("editCtl", function ($scope, $rootScope, $http, $routeParams) {
 					$scope.loadMailboxInfo();
 			}, function(response) {
 				$rootScope.errorMsg = "API "+url+" POST: " + response.statusText + " " + response.data;
+			}
+		);
+	};
+	$scope.dropMailbox = function(){
+		if (! confirm("Sure to delete mailbox?")) { return; }
+		var url = "/v1/mailbox/"+$routeParams.MailboxId;
+		$http.delete(url)
+		.then(function(response) {
+				$location.url("/");
+			}, function(response) {
+				$rootScope.errorMsg = "API "+url+" DELETE: " + response.statusText;
 			}
 		);
 	};
