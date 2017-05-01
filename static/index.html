@@ -60,7 +60,11 @@ app.config(function($routeProvider) {
 				controller : "editCtl"
 		});
 });
-app.controller("listCtl", function ($scope, $rootScope, $location, $http) {
+app.factory("filter",function(){
+	//return {Email: "", Name: ""};
+	return {};
+});
+app.controller("listCtl", function ($scope, $rootScope, $location, $http, filter) {
 	$scope.mailboxes = [ ];
 	$rootScope.alerts = [];
 	$rootScope.closeAlert = function(index) {
@@ -112,7 +116,7 @@ app.controller("listCtl", function ($scope, $rootScope, $location, $http) {
 });
 
 
-app.controller("editCtl", function ($scope, $rootScope, $http, $routeParams, $location) {
+app.controller("editCtl", function ($scope, $rootScope, $http, $routeParams, $location, filter) {
 	$rootScope.alerts = [];
 	$rootScope.closeAlert = function(index) {
 		$rootScope.alerts.splice(index, 1);

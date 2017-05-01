@@ -2,10 +2,10 @@
 
 <div>
 	<form class="form-inline">
-		<label class="control-label" for="filterEmail">Email filter</label>
-		<input type="text" ng-model="filterEmail" class="form-control">
-		<label class="control-label" for="filterName">Name filter</label>
-		<input type="text" ng-model="filterName" class="form-control">
+		<label class="control-label" for="filter.Email">Email filter</label>
+		<input type="text" ng-model="filter.Email" class="form-control">
+		<label class="control-label" for="filter.Name">Name filter</label>
+		<input type="text" ng-model="filter.Name" class="form-control">
 	</form>
 </div>
 
@@ -18,9 +18,9 @@
 		<th>Name</th>
 		<th>Disabled</th>
 	</tr>
-	<tr ng-repeat="box in mailboxes | filter : { 'Email': filterEmail, 'Name': filterName}">
-		<td> <a ng-href="#/edit/{{box.Id}}">{{ box.Email }}</a> </td>
-			<td> {{ box.Name }}</td>
-			<td> <input type="checkbox" ng-model="box.Disabled" ng-disabled="true"></td>
+	<tr ng-repeat="box in mailboxes | filter : { 'Email': filter.Email, 'Name': filter.Name}">
+		<td> <a ng-href="#/edit/{{box.Id}}">{{box.Email}}</a> </td>
+		<td> {{ box.Name }}</td>
+		<td> <input type="checkbox" ng-model="box.Disabled" ng-disabled="true"></td>
 	</tr>
 </table>
